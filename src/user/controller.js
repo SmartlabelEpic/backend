@@ -5,7 +5,7 @@ const registerController = async (req, res) => {
     try {
         console.log(req.body, 'ksafkl')
         const { user, token, refreshToken } = await userService.register(req.body);
-        res.cookie('refreshToken', refreshToken, {
+        res.cookies('refreshToken', refreshToken, {
             httpOnly: true,         // Prevents access by client-side JavaScript
             secure: false,
             // Ensures the cookie is sent over HTTPS in production
@@ -21,18 +21,18 @@ const registerController = async (req, res) => {
 const loginController = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const { token, refreshToken, user } = await userService.login(email, password);
-        console.log(refreshToken,
+        const { token, user } = await userService.login(email, password, res);
+        // console.log(refreshToken,
 
-            'refreshToken'
-        )
+        //     'refreshToken'
+        // )
 
         // Set refresh token in HTTP-only cookie
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: false,
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+        // res.cookie('refreshToken', refreshToken, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        // });
 
         res.status(200).json({ message: 'User logged in', user, token });
     } catch (error) {
