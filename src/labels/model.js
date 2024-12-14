@@ -16,6 +16,11 @@ const fssaiCategories = [
 const statusValues = ['active', 'inactive', 'pending']; 
 
 const labelSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Referencing the User model
+    required: true, // Optional, depending on whether the user is required
+  },
   name: { type: String, required: true },
   mrp: { type: Number, required: true },
   netWeight: { type: String, required: true },

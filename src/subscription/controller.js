@@ -25,9 +25,9 @@ export const createSubscription = async (req, res) => {
       labelCount,
       subscriptionType,
     });
-    
+
     await newSubscription.save();
-    
+
     res.status(201).json({ message: 'Subscription created successfully', newSubscription, price });
   } catch (error) {
     res.status(500).json({ message: 'Error creating subscription', error });

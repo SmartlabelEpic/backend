@@ -35,10 +35,11 @@ app.use(cors())
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json())
 app.use('/api/v1/me', user)
-app.use('/api/v1/recipe', authenticateUser, recipe)
+app.use('/api/v1/recipe', recipe)
 app.use('/api/v1/label', label);
 app.use('/api/v1/team', team);
 app.use('/api/v1/subscription', subscription)
+app.use(authenticateUser);
 app.use('/api/v1/brand', brand)
 app.use('/api/v1/address', address)
 app.use('/api/v1/consumer-care', consumerCare)

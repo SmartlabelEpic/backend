@@ -23,6 +23,11 @@ const consumerCareSchema = new mongoose.Schema({
       match: [/^\d{5,6}$/, 'Invalid pincode'],
     },
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Referencing the User model
+    required: true, // Optional, depending on whether the user is required
+  },
 }, { timestamps: true });
 
 const ConsumerCare = mongoose.model('ConsumerCare', consumerCareSchema);

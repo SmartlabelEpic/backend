@@ -6,6 +6,7 @@ import {
   updateBrand,
   deleteBrand,
 } from './controller.js';
+import authenticateUser from '../../middleware/authentication.js';
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ const router = express.Router();
 router.post('/', createBrand);
 
 // Get all brands
-router.get('/', getBrands);
+router.get('/', authenticateUser, getBrands);
 
 // Get a brand by ID
 router.get('/:id', getBrandById);

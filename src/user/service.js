@@ -12,8 +12,8 @@ const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '1h'; // Refres
 // Generate access token
 const generateAccessToken = async (user) => {
     console.log(user, 'user')
-    let token = await jwt.sign({ id: user._id }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRY,
+    let token = await jwt.sign({ id: user._id }, 'secret', {
+        expiresIn: "120h",
     });
     console.log(token);
     return token;
@@ -25,98 +25,83 @@ const generateRefreshToken = (user) => {
 };
 
 // Register user function
-const register = async (userData, req, res) => {
-    console.log(userData,
+const register = async (userData) => {
+    console.log(userData, 'flakj');
 
-        'flakj'
-    )
-    const { username, email, password, profilePic } = userData;
+    const { username, email, password, mobile } = userData;
+    console.log(password, 'pass register');
 
     try {
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+            return { message: 'User already exists' };
         }
 
-        // Handle file upload using formidable
-        const form = new formidable.IncomingForm();
-        form.uploadDir = path.join(__dirname, '../uploads');
-        form.keepExtensions = true;
-        form.maxFileSize = 10 * 1024 * 1024; // Max 10MB file size
+        // Hash password before saving
+        // const hashedPassword = await bcrypt.hash(password, 12);
+        // console.log('hashed psd', hashedPassword);
+        console.log('hashed psd', password);
 
-        form.parse(req, async (err, fields, files) => {
-            if (err) {
-                return res.status(400).json({ message: 'Error during file upload', error: err });
-            }
-
-            // Handle profile picture
-            let profilePicPath = '';
-            if (files.profilePic) {
-                const profilePic = files.profilePic;
-                const newFileName = `${Date.now()}_${profilePic.originalFilename}`;
-                profilePicPath = path.join(__dirname, '../uploads', newFileName);
-
-                // Move the uploaded file
-                fs.renameSync(profilePic.filepath, profilePicPath);
-            }
-
-            // Hash password before saving
-            const hashedPassword = await bcrypt.hash(password, 12);
-
-            // Create new user
-            const user = new User({
-                username,
-                email,
-                password: hashedPassword,
-                profilePic: profilePicPath, // Save file path to user record
-            });
-
-            await user.save();
-
-            // Generate tokens
-            const token = generateAccessToken(user);
-            const refreshToken = generateRefreshToken(user);
-
-            // Return response
-            res.status(200).json({
-                message: 'User registered successfully',
-                data: {
-                    user,
-                    token,
-                    refreshToken,
-                    profilePic: profilePicPath, // Include file path in response
-                },
-            });
+        // Create new user
+        const user = new User({
+            username,
+            email,
+            password,
+            mobile: mobile,
         });
+
+        const savedUser = await user.save();
+        console.log(savedUser, 'savedUser');
+
+        // Generate token
+        const token = await generateAccessToken(savedUser);
+
+        // Return user and token
+        return {
+            user: savedUser,
+            token,
+        };
     } catch (error) {
-        res.status(500).json({ message: 'Error during registration', error: error.message });
+        console.log(error.message, 'service');
+        return { message: 'Error during registration', error: error.message };
     }
 };
+
 
 // Login function
 const login = async (email, password, res) => {
     try {
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+        console.log(email, password, 'fkafl');
+
+        // Find the user by email
+        const user = await User.findOne({ email: email });
+
+        console.log(user, 'user')
+        // If no user is found, return an error
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
 
         // Validate password
         const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) return res.status(400).json({ message: 'Invalid email or password' });
+        console.log(isPasswordValid, 'isPasswordValid');
 
-        // Generate tokens
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        // Generate token
         const token = await generateAccessToken(user);
-        console.log(token,
+        console.log(token, 'generated token');
 
-            'kfajfl'
-        )
-        // const refreshToken = generateRefreshToken(user);
-
-       return {token ,user}
+        return { token, user };
     } catch (error) {
+        console.log(error.message, 'login error');
         res.status(500).json({ message: 'Error during login', error: error.message });
     }
 };
+
 
 // Refresh access token function
 const refreshAccessToken = async (refreshToken) => {

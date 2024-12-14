@@ -5,14 +5,17 @@ const registerController = async (req, res) => {
     try {
         console.log(req.body, 'ksafkl')
         const { user, token, refreshToken } = await userService.register(req.body);
-        res.cookies('refreshToken', refreshToken, {
-            httpOnly: true,         // Prevents access by client-side JavaScript
-            secure: false,
-            // Ensures the cookie is sent over HTTPS in production
-            sameSite: 'strict',     // Prevents CSRF attacks
-            maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie expires in 7 days
-        });
-        res.status(201).json({ message: 'User registered', user, token });
+        // res.cookies('refreshToken', refreshToken, {
+        //     httpOnly: true,         // Prevents access by client-side JavaScript
+        //     secure: false,
+        //     // Ensures the cookie is sent over HTTPS in production
+        //     sameSite: 'strict',     // Prevents CSRF attacks
+        //     maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie expires in 7 days
+        // });
+        if (!user || !token) {
+            return res.status(400).json({ message: "failed to register user" })
+        }
+        return res.status(200).json({ user, token, message: "user Created" })
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
