@@ -1,75 +1,109 @@
 import User from './model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import formidable from 'formidable';
+import fs from 'fs';
+import path from 'path';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Store this in an env variable
-const JWT_EXPIRY = process.env.JWT_EXPIRY; // Access token expiry
-const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY; // Refresh token expiry
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret'; // Store in env variable
+const JWT_EXPIRY = process.env.JWT_EXPIRY || '100h'; // Access token expiry
+const REFRESH_TOKEN_EXPIRY = process.env.REFRESH_TOKEN_EXPIRY || '1h'; // Refresh token expiry
 
-const generateAccessToken = (user) => {
-    return jwt.sign({ id: user._id }, "your_jwt_secret", {
-        expiresIn:
-            '100h'
+// Generate access token
+const generateAccessToken = async (user) => {
+    console.log(user, 'user')
+    let token = await jwt.sign({ id: user._id }, 'secret', {
+        expiresIn: "120h",
     });
+    console.log(token);
+    return token;
 };
 
+// Generate refresh token
 const generateRefreshToken = (user) => {
-    return jwt.sign({ id: user._id }, "your_jwt_secret", { expiresIn: '1h' });
+    return jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
 };
 
-const register = async (userData, res) => {
-    const { username, email, password } = userData;
+// Register user function
+const register = async (userData) => {
+    console.log(userData, 'flakj');
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) throw new Error('User already exists');
+    const { username, email, password, mobile } = userData;
+    console.log(password, 'pass register');
 
-    // Create new user
-    const user = new User({ username, email, password });
-    await user.save();
+    try {
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return { message: 'User already exists' };
+        }
 
-    // Generate access and refresh tokens
-    const token = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+        // Hash password before saving
+        // const hashedPassword = await bcrypt.hash(password, 12);
+        // console.log('hashed psd', hashedPassword);
+        console.log('hashed psd', password);
 
-    // Store refresh token in an HTTP-only cookie
-    
-    // Return access token and user
-    return { user, token, refreshToken };
+        // Create new user
+        const user = new User({
+            username,
+            email,
+            password,
+            mobile: mobile,
+        });
+
+        const savedUser = await user.save();
+        console.log(savedUser, 'savedUser');
+
+        // Generate token
+        const token = await generateAccessToken(savedUser);
+
+        // Return user and token
+        return {
+            user: savedUser,
+            token,
+        };
+    } catch (error) {
+        console.log(error.message, 'service');
+        return { message: 'Error during registration', error: error.message };
+    }
 };
 
 
+// Login function
 const login = async (email, password, res) => {
-    // Find user by email
-    const user = await User.findOne({ email });
-    if (!user) throw new Error('Invalid email or password');
+    try {
+        console.log(email, password, 'fkafl');
 
-    // Validate password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw new Error('Invalid email or password');
+        // Find the user by email
+        const user = await User.findOne({ email: email });
 
-    // Generate access and refresh tokens
-    const token = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
+        console.log(user, 'user')
+        // If no user is found, return an error
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
 
-    // Store refresh token in an HTTP-only cookie
-    // res.cookie('refreshToken', refreshToken, {
-    //     httpOnly: true,         // Prevents access by client-side JavaScript
-    //     secure: process.env.NODE_ENV === 'production', // Ensures the cookie is sent over HTTPS in production
-    //     sameSite: 'strict',     // Prevents CSRF attacks
-    //     maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie expires in 7 days
-    // });
+        // Validate password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        console.log(isPasswordValid, 'isPasswordValid');
 
-    // Return access token and user
-    return { token, user, refreshToken };
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: 'Invalid email or password' });
+        }
+
+        // Generate token
+        const token = await generateAccessToken(user);
+        console.log(token, 'generated token');
+
+        return { token, user };
+    } catch (error) {
+        console.log(error.message, 'login error');
+        res.status(500).json({ message: 'Error during login', error: error.message });
+    }
 };
 
 
-
-const logout = async () => {
-    // Handle logout logic if needed (e.g., blacklist refresh token)
-};
-
+// Refresh access token function
 const refreshAccessToken = async (refreshToken) => {
     if (!refreshToken) throw new Error('No refresh token provided');
     try {
@@ -83,4 +117,4 @@ const refreshAccessToken = async (refreshToken) => {
     }
 };
 
-export default { register, login, logout, refreshAccessToken };
+export default { register, login, refreshAccessToken };
