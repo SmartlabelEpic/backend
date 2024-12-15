@@ -5,6 +5,7 @@ dotenv.config(); // Load .env variables
 
 const authenticateUser = async (req, res, next) => {
     // Extract token from the Authorization header (Bearer token format)
+
     const token = req.headers['authorization']?.split(' ')[1];
 
     if (!token) {
