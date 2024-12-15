@@ -36,7 +36,7 @@ export const getBrands = async (req, res) => {
 // Get a single brand by ID (only if it's the user's brand)
 export const getBrandById = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user._id;
+  const userId = req.user.id;
 
   try {
     const brand = await Brand.findOne({ _id: id, user: userId }); // Ensure the brand belongs to the user
@@ -51,9 +51,11 @@ export const getBrandById = async (req, res) => {
 
 // Update a brand (only if it belongs to the authenticated user)
 export const updateBrand = async (req, res) => {
+  console.log('updatebrand')
   const { id } = req.params;
   const { name, imageUrl, description } = req.body;
-  const userId = req.user._id;
+  const userId = req.user.id;
+  console.log(userId, id, 'fak')
 
   try {
     const brand = await Brand.findOneAndUpdate(
@@ -75,8 +77,8 @@ export const updateBrand = async (req, res) => {
 // Delete a brand (only if it belongs to the authenticated user)
 export const deleteBrand = async (req, res) => {
   const { id } = req.params;
-  const userId = req.user._id;
-
+  const userId = req.user.id;
+  console.log(userId, id, 'fak')
   try {
     const brand = await Brand.findOneAndDelete({ _id: id, user: userId }); // Ensure the brand belongs to the user
     if (!brand) {
