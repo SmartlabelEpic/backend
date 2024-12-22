@@ -7,6 +7,7 @@ import brand from './src/brand/route.js'
 import consumerCare from './src/consumercare/route.js'
 import storageInstruction from './src/storage-instruction/route.js'
 import companyDetails from './src/company-details/route.js'
+import foodName from './src/food-name/routes.js'
 import subscription from "./src/subscription/model.js";
 import authenticateUser from './middleware/authentication.js';
 import cors from 'cors'
@@ -45,6 +46,8 @@ app.use('/api/v1/address', address)
 app.use('/api/v1/consumer-care', consumerCare)
 app.use('/api/v1/storage-instruction', storageInstruction)
 app.use('/api/v1/company-details', companyDetails)
+app.use('/api/v1/food-name', foodName)
+
 
 
 
