@@ -4,10 +4,13 @@ import Label from './model.js';
 export const createLabel = async (req, res) => {
   try {
     const labelData = { ...req.body, user: req.user.id }; // Add user ID to label data
+    console.log(labelData, 'dfkajl')
     const newLabel = new Label(labelData);
     await newLabel.save();
     res.status(201).json(newLabel);
+
   } catch (error) {
+    console.log(error.message)
     res.status(500).json({ message: 'Error creating label', error });
   }
 };
@@ -39,6 +42,13 @@ export const updateLabel = async (req, res) => {
   try {
     const { id } = req.params;
     const labelData = req.body;
+    console.log(labelData, 'dkfaj')
+    const file = req.file;
+
+    console.log(file, 'dlkfajlf')
+    // Find and update the user
+    // const imageUrl = file ? `http://localhost:8080/uploads/${file.filename}` : null;
+    // labelData.barcode_image = imageUrl;
     const updatedLabel = await Label.findOneAndUpdate(
       { _id: id, user: req.user.id }, // Ensure the label belongs to the user
       labelData,
@@ -47,6 +57,7 @@ export const updateLabel = async (req, res) => {
     if (!updatedLabel) return res.status(404).json({ message: 'Label not found' });
     res.status(200).json(updatedLabel);
   } catch (error) {
+    console.log(error.message)
     res.status(500).json({ message: 'Error updating label', error });
   }
 };

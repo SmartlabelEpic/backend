@@ -27,6 +27,7 @@ export const getCompanyDetails = async (req, res) => {
     const companyDetails = await CompanyDetails.find({ user: req.user.id }); // Filter by user
     res.status(200).json(companyDetails);
   } catch (error) {
+    console.log(error.message, 'dfka')
     res.status(500).json({ message: error.message });
   }
 };

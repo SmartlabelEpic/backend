@@ -25,46 +25,30 @@ const generateRefreshToken = (user) => {
 };
 
 // Register user function
-const register = async (userData) => {
-    console.log(userData, 'flakj');
-
+const register = async (userData, file) => {
     const { username, email, password, mobile } = userData;
-    console.log(password, 'pass register');
 
     try {
-        // Check if user already exists
+        console.log(
+
+            'here'
+        )
         const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return { message: 'User already exists' };
-        }
+        if (existingUser) return { message: "User already exists" };
 
-        // Hash password before saving
-        // const hashedPassword = await bcrypt.hash(password, 12);
-        // console.log('hashed psd', hashedPassword);
-        console.log('hashed psd', password);
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const imageUrl = file ? `http://localhost:8080/uploads/${file.filename}` : null;
 
-        // Create new user
-        const user = new User({
-            username,
-            email,
-            password,
-            mobile: mobile,
-        });
+        const newUser = new User({ username, email, password: hashedPassword, mobile, image: imageUrl });
+        await newUser.save();
 
-        const savedUser = await user.save();
-        console.log(savedUser, 'savedUser');
+        const token = await generateAccessToken(newUser);
+        const refreshToken = await generateRefreshToken(newUser);
 
-        // Generate token
-        const token = await generateAccessToken(savedUser);
-
-        // Return user and token
-        return {
-            user: savedUser,
-            token,
-        };
+        return { user: newUser, token, refreshToken };
     } catch (error) {
-        console.log(error.message, 'service');
-        return { message: 'Error during registration', error: error.message };
+        console.log(error.message, 'dlkfjal')
+        return { message: "Error during registration", error: error.message };
     }
 };
 
