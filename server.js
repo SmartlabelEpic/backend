@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3001;
 
 connectToDatabase();
 
+
 app.listen(PORT, () => {
     console.log(`server is listening at ${PORT}`)
 })

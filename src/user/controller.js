@@ -3,20 +3,13 @@ import userService from './service.js';
 
 const registerController = async (req, res) => {
     try {
-        console.log(req.body, 'ksafkl')
-        const { user, token, refreshToken } = await userService.register(req.body);
-        // res.cookies('refreshToken', refreshToken, {
-        //     httpOnly: true,         // Prevents access by client-side JavaScript
-        //     secure: false,
-        //     // Ensures the cookie is sent over HTTPS in production
-        //     sameSite: 'strict',     // Prevents CSRF attacks
-        //     maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie expires in 7 days
-        // });
+        const { user, token, refreshToken } = await userService.register(req.body, req.file);
         if (!user || !token) {
-            return res.status(400).json({ message: "failed to register user" })
+            return res.status(400).json({ message: "Failed to register user" });
         }
-        return res.status(200).json({ user, token, message: "user Created" })
+        return res.status(200).json({ user, token, message: "User Created" });
     } catch (error) {
+        console.log(error.message, 'sdfjkalk')
         res.status(400).json({ error: error.message });
     }
 };
@@ -100,12 +93,15 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const userId = req.user.id; // Retrieved from authentication middleware
-        const { username, email } = req.body;
+        const { username, email, image } = req.body;
 
+        const file = req.file;
+        console.log(image, 'dkfjal')
         // Find and update the user
+        const imageUrl = file ? `http://localhost:8080/uploads/${file.filename}` : null;
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { username, email },
+            { username, email, image: imageUrl },
             { new: true, runValidators: true } // Return updated user, validate fields
         );
 
@@ -117,9 +113,10 @@ const updateProfile = async (req, res) => {
             message: 'Profile updated successfully',
             user: {
                 id: updatedUser._id,
-                name: updatedUser.name,
+                username: updatedUser.username,
                 email: updatedUser.email,
                 phone: updatedUser.phone,
+                image: updatedUser.image,
             },
         });
     } catch (error) {
